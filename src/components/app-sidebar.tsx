@@ -1,72 +1,87 @@
-/* This is a demo sidebar. **COMPULSORY** Edit this file to customize the sidebar OR remove it from appLayout OR don't use appLayout at all */
 import React from "react";
-import { Home, Layers, Compass, Star, Settings, LifeBuoy } from "lucide-react";
+import { LayoutDashboard, ListFilter, Bell, ShieldCheck, Activity, Terminal } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
   SidebarHeader,
-  SidebarSeparator,
-  SidebarInput,
   SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarMenuAction,
-  SidebarMenuBadge,
 } from "@/components/ui/sidebar";
-
+import { cn } from "@/lib/utils";
 export function AppSidebar(): JSX.Element {
+  const location = useLocation();
+  const menuItems = [
+    { title: "Dashboard", icon: LayoutDashboard, path: "/" },
+    { title: "Logs Explorer", icon: ListFilter, path: "/logs" },
+    { title: "Alerts", icon: Bell, path: "/alerts" },
+  ];
   return (
-    <Sidebar>
-      <SidebarHeader>
-        <div className="flex items-center gap-2 px-2 py-1">
-          <div className="h-6 w-6 rounded-md bg-gradient-to-br from-indigo-500 to-purple-500" />
-          <span className="text-sm font-medium">Demo Sidebar</span>
+    <Sidebar className="border-r border-slate-800 bg-slate-950 text-slate-300">
+      <SidebarHeader className="p-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-500 text-white">
+            <Activity className="h-5 w-5" />
+          </div>
+          <span className="text-lg font-bold tracking-tight text-white">EdgeSight</span>
         </div>
-        <SidebarInput placeholder="Search" />
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive>
-                <a href="#"><Home /> <span>Home</span></a>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <a href="#"><Layers /> <span>Projects</span></a>
-              </SidebarMenuButton>
-              <SidebarMenuAction>
-                <Star className="size-4" />
-              </SidebarMenuAction>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <a href="#"><Compass /> <span>Explore</span></a>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+          <SidebarGroupLabel className="px-4 text-xs font-semibold uppercase tracking-wider text-slate-500">
+            Observability
+          </SidebarGroupLabel>
+          <SidebarMenu className="mt-2 px-2">
+            {menuItems.map((item) => (
+              <SidebarMenuItem key={item.path}>
+                <SidebarMenuButton
+                  asChild
+                  isActive={location.pathname === item.path}
+                  className={cn(
+                    "flex items-center gap-3 rounded-md px-3 py-2 transition-all duration-200",
+                    location.pathname === item.path 
+                      ? "bg-cyan-500/10 text-cyan-400 font-medium" 
+                      : "hover:bg-slate-900 hover:text-white"
+                  )}
+                >
+                  <Link to={item.path}>
+                    <item.icon className="h-4 w-4" />
+                    <span>{item.title}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
           </SidebarMenu>
         </SidebarGroup>
-
-        <SidebarSeparator />
-
-        <SidebarGroup>
-          <SidebarGroupLabel>Quick Links</SidebarGroupLabel>
-          <SidebarMenu>
+        <SidebarGroup className="mt-4">
+          <SidebarGroupLabel className="px-4 text-xs font-semibold uppercase tracking-wider text-slate-500">
+            System
+          </SidebarGroupLabel>
+          <SidebarMenu className="px-2">
             <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <a href="#"><Star /> <span>Starred</span></a>
+              <SidebarMenuButton className="flex items-center gap-3 hover:bg-slate-900">
+                <ShieldCheck className="h-4 w-4" />
+                <span>Security</span>
               </SidebarMenuButton>
-              <SidebarMenuBadge>5</SidebarMenuBadge>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton className="flex items-center gap-3 hover:bg-slate-900">
+                <Terminal className="h-4 w-4" />
+                <span>API Console</span>
+              </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>
-        <div className="px-2 text-xs text-muted-foreground">A simple shadcn sidebar</div>
+      <SidebarFooter className="border-t border-slate-800 p-4">
+        <div className="flex items-center gap-2 text-2xs font-medium text-slate-500">
+          <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+          EDGE NODE: FRA-1
+        </div>
       </SidebarFooter>
     </Sidebar>
   );

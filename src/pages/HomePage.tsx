@@ -1,138 +1,156 @@
-// Home page of the app.
-// Currently a demo placeholder "please wait" screen.
-// Replace this file with your actual app UI. Do not delete it to use some other file as homepage. Simply replace the entire contents of this file.
-
-import { useEffect, useMemo, useState } from 'react'
-import { Sparkles } from 'lucide-react'
-
-import { ThemeToggle } from '@/components/ThemeToggle'
-import { HAS_TEMPLATE_DEMO, TemplateDemo } from '@/components/TemplateDemo'
-import { Button } from '@/components/ui/button'
-import { Toaster, toast } from '@/components/ui/sonner'
-
-function formatDuration(ms: number): string {
-  const total = Math.max(0, Math.floor(ms / 1000))
-  const m = Math.floor(total / 60)
-  const s = total % 60
-  return `${m}:${s.toString().padStart(2, '0')}`
-}
-
-export function HomePage() {
-  const [coins, setCoins] = useState(0)
-  const [isRunning, setIsRunning] = useState(false)
-  const [startedAt, setStartedAt] = useState<number | null>(null)
-  const [elapsedMs, setElapsedMs] = useState(0)
-
-  useEffect(() => {
-    if (!isRunning || startedAt === null) return
-
-    const t = setInterval(() => {
-      setElapsedMs(Date.now() - startedAt)
-    }, 250)
-
-    return () => clearInterval(t)
-  }, [isRunning, startedAt])
-
-  const formatted = useMemo(() => formatDuration(elapsedMs), [elapsedMs])
-
-  const onPleaseWait = () => {
-    setCoins((c) => c + 1)
-
-    if (!isRunning) {
-      // Resume from the current elapsed time
-      setStartedAt(Date.now() - elapsedMs)
-      setIsRunning(true)
-      toast.success('Building your app…', {
-        description: "Hang tight — we're setting everything up.",
-      })
-      return
-    }
-
-    setIsRunning(false)
-    toast.info('Still working…', {
-      description: 'You can come back in a moment.',
-    })
-  }
-
-  const onReset = () => {
-    setCoins(0)
-    setIsRunning(false)
-    setStartedAt(null)
-    setElapsedMs(0)
-    toast('Reset complete')
-  }
-
-  const onAddCoin = () => {
-    setCoins((c) => c + 1)
-    toast('Coin added')
-  }
-
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-background text-foreground p-4 overflow-hidden relative">
-      <ThemeToggle />
-      <div className="absolute inset-0 bg-gradient-rainbow opacity-10 dark:opacity-20 pointer-events-none" />
-
-      <div className="text-center space-y-8 relative z-10 animate-fade-in w-full">
-        <div className="flex justify-center">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-primary flex items-center justify-center shadow-primary floating">
-            <Sparkles className="w-8 h-8 text-white rotating" />
-          </div>
+import React, { useMemo } from 'react';
+import { AppLayout } from '@/components/layout/AppLayout';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell, LineChart, Line } from 'recharts';
+import { Activity, AlertTriangle, Clock, HardDrive } from 'lucide-react';
+import { generateMockMetrics } from '@shared/mock-data';
+import { format } from 'date-fns';
+const metrics = generateMockMetrics(24);
+const KpiCard = ({ title, value, change, icon: Icon, color, data }: any) => (
+  <Card className="bg-slate-900/50 border-slate-800 backdrop-blur-sm">
+    <CardContent className="p-6">
+      <div className="flex items-center justify-between space-y-0 pb-2">
+        <p className="text-sm font-medium text-slate-400">{title}</p>
+        <div className={`p-2 rounded-lg bg-${color}-500/10`}>
+          <Icon className={`h-4 w-4 text-${color}-400`} />
         </div>
-
-        <div className="space-y-3">
-          <h1 className="text-5xl md:text-7xl font-display font-bold text-balance leading-tight">
-            Creating your <span className="text-gradient">app</span>
-          </h1>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-xl mx-auto text-pretty">
-            Your application would be ready soon.
-          </p>
-        </div>
-
-        {HAS_TEMPLATE_DEMO ? (
-          <div className="max-w-5xl mx-auto text-left">
-            <TemplateDemo />
-          </div>
-        ) : (
-          <>
-            <div className="flex justify-center gap-4">
-              <Button
-                size="lg"
-                onClick={onPleaseWait}
-                className="btn-gradient px-8 py-4 text-lg font-semibold hover:-translate-y-0.5 transition-all duration-200"
-                aria-live="polite"
-              >
-                Please Wait
-              </Button>
-            </div>
-
-            <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
-              <div>
-                Time elapsed:{' '}
-                <span className="font-medium tabular-nums text-foreground">{formatted}</span>
-              </div>
-              <div>
-                Coins:{' '}
-                <span className="font-medium tabular-nums text-foreground">{coins}</span>
-              </div>
-            </div>
-
-            <div className="flex justify-center gap-2">
-              <Button variant="outline" size="sm" onClick={onReset}>
-                Reset
-              </Button>
-              <Button variant="outline" size="sm" onClick={onAddCoin}>
-                Add Coin
-              </Button>
-            </div>
-          </>
-        )}
       </div>
-
-      <footer className="absolute bottom-8 text-center text-muted-foreground/80">
-        <p>Powered by Cloudflare</p>
-      </footer>
-
-      <Toaster richColors closeButton />
-    </div>
-  )
+      <div className="mt-2">
+        <div className="text-2xl font-bold text-white">{value}</div>
+        <p className={`text-xs mt-1 ${change.startsWith('+') ? 'text-emerald-400' : 'text-rose-400'}`}>
+          {change} from last hour
+        </p>
+      </div>
+      <div className="h-10 mt-4 w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={data}>
+            <Line type="monotone" dataKey="val" stroke={`var(--${color}-400)`} strokeWidth={2} dot={false} />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+    </CardContent>
+  </Card>
+);
+export function HomePage() {
+  const chartData = useMemo(() => metrics.map(m => ({
+    time: format(m.timestamp, 'HH:mm'),
+    requests: m.totalRequests,
+    errors: m.errorCount,
+    latency: m.p90Latency
+  })), []);
+  const statusData = [
+    { name: '2xx', value: 85, color: '#10b981' },
+    { name: '3xx', value: 8, color: '#3b82f6' },
+    { name: '4xx', value: 5, color: '#f59e0b' },
+    { name: '5xx', value: 2, color: '#f43f5e' },
+  ];
+  return (
+    <AppLayout container>
+      <div className="space-y-8">
+        <div className="flex flex-col space-y-2">
+          <h1 className="text-3xl font-bold tracking-tight text-white">Edge Dashboard</h1>
+          <p className="text-slate-400 font-medium">Real-time performance metrics across the Cloudflare edge.</p>
+        </div>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <KpiCard 
+            title="Total Traffic" 
+            value="1.2M" 
+            change="+12.5%" 
+            icon={Activity} 
+            color="cyan"
+            data={metrics.slice(-10).map(m => ({ val: m.totalRequests }))}
+          />
+          <KpiCard 
+            title="Error Rate" 
+            value="0.42%" 
+            change="-2.1%" 
+            icon={AlertTriangle} 
+            color="rose"
+            data={metrics.slice(-10).map(m => ({ val: m.errorCount }))}
+          />
+          <KpiCard 
+            title="Avg Latency" 
+            value="42ms" 
+            change="+4ms" 
+            icon={Clock} 
+            color="amber"
+            data={metrics.slice(-10).map(m => ({ val: m.p90Latency }))}
+          />
+          <KpiCard 
+            title="Bandwidth" 
+            value="4.2 TB" 
+            change="+8.2%" 
+            icon={HardDrive} 
+            color="indigo"
+            data={metrics.slice(-10).map(m => ({ val: m.bandwidth }))}
+          />
+        </div>
+        <Card className="bg-slate-900/50 border-slate-800">
+          <CardHeader>
+            <CardTitle className="text-slate-200">Request Distribution</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[400px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={chartData}>
+                  <defs>
+                    <linearGradient id="colorRequests" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#06b6d4" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+                  <XAxis dataKey="time" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '8px' }}
+                    itemStyle={{ color: '#94a3b8' }}
+                  />
+                  <Area type="monotone" dataKey="requests" stroke="#06b6d4" fillOpacity={1} fill="url(#colorRequests)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+        <div className="grid gap-6 md:grid-cols-2">
+          <Card className="bg-slate-900/50 border-slate-800">
+            <CardHeader>
+              <CardTitle className="text-slate-200 text-sm">HTTP Status Distribution</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[250px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={statusData}>
+                    <XAxis dataKey="name" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
+                    <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                      {statusData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-slate-900/50 border-slate-800">
+            <CardHeader>
+              <CardTitle className="text-slate-200 text-sm">P90 Latency (ms)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[250px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+                    <XAxis dataKey="time" stroke="#64748b" fontSize={12} hide />
+                    <Tooltip contentStyle={{ backgroundColor: '#0f172a' }} />
+                    <Area type="monotone" dataKey="latency" stroke="#f59e0b" fill="#f59e0b20" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </AppLayout>
+  );
 }
