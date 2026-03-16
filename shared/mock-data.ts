@@ -1,11 +1,11 @@
-import { LogEvent, MetricSummary } from './types';
+import { LogEvent, MetricSummary, User, Chat, ChatMessage } from './types';
 const PATHS = ['/api/v1/user', '/api/v1/auth', '/api/v1/data', '/api/v1/status', '/login', '/', '/dashboard'];
 const METHODS: Array<LogEvent['method']> = ['GET', 'POST', 'GET', 'GET', 'PUT', 'DELETE'];
 const STATUSES = [200, 200, 200, 201, 204, 400, 401, 403, 404, 500, 502];
 export const generateMockLogs = (count: number): LogEvent[] => {
   return Array.from({ length: count }).map((_, i) => ({
-    id: `log-${i}`,
-    timestamp: Date.now() - Math.floor(Math.random() * 86400000),
+    id: `log-${i}-${Math.random().toString(36).substring(7)}`,
+    timestamp: Date.now() - Math.floor(Math.random() * 3600000), // Last hour
     method: METHODS[Math.floor(Math.random() * METHODS.length)],
     path: PATHS[Math.floor(Math.random() * PATHS.length)],
     status: STATUSES[Math.floor(Math.random() * STATUSES.length)],
@@ -18,7 +18,8 @@ export const generateMockLogs = (count: number): LogEvent[] => {
 export const generateMockMetrics = (hours: number = 24): MetricSummary[] => {
   const now = Date.now();
   return Array.from({ length: hours }).map((_, i) => {
-    const ts = now - (hours - i) * 3600000;
+    // Align to the start of the hour
+    const ts = new Date(now - (hours - i) * 3600000).setMinutes(0, 0, 0);
     const baseRequests = 500 + Math.floor(Math.random() * 1000);
     return {
       timestamp: ts,
@@ -29,6 +30,8 @@ export const generateMockMetrics = (hours: number = 24): MetricSummary[] => {
     };
   });
 };
-export const MOCK_USERS = [{ id: 'u1', name: 'Admin' }];
-export const MOCK_CHATS = [{ id: 'c1', title: 'System' }];
-export const MOCK_CHAT_MESSAGES = [];
+export const SEED_LOGS: LogEvent[] = generateMockLogs(20);
+export const SEED_METRICS: MetricSummary[] = generateMockMetrics(24);
+export const MOCK_USERS: User[] = [{ id: 'u1', name: 'Admin' }];
+export const MOCK_CHATS: Chat[] = [{ id: 'c1', title: 'System' }];
+export const MOCK_CHAT_MESSAGES: ChatMessage[] = [];
