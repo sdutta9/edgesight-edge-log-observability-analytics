@@ -1,6 +1,6 @@
 # Cloudflare Workers Fullstack Template
 
-[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)]([cloudflarebutton])
+[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)]([![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/sdutta9/edgesight-edge-log-observability-analytics))
 
 A production-ready fullstack application template built on Cloudflare Workers. Features a reactive frontend with React, Vite, and shadcn/ui, powered by a Hono-based API with Durable Objects for stateful data management (Users, ChatBoards, Messages). Includes TypeScript end-to-end, TanStack Query, Tailwind CSS, and seamless deployment to Cloudflare's global edge network.
 
@@ -103,7 +103,7 @@ const users = await api<User[]>('/api/users');
    wrangler pages deploy --project-name YOUR_PROJECT
    ```
 
-[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)]([cloudflarebutton])
+[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)]([![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/sdutta9/edgesight-edge-log-observability-analytics))
 
 **Note**: Durable Objects migrate automatically. First deploy seeds demo data.
 
