@@ -3,7 +3,6 @@ import type { LogEvent, MetricSummary } from "@shared/types";
 import { SEED_LOGS, SEED_METRICS } from "@shared/mock-data";
 /**
  * LogEntryEntity: Stores individual raw log events.
- * Uses rayId as the primary key.
  */
 export class LogEntryEntity extends IndexedEntity<LogEvent> {
   static readonly entityName = "log_entry";
@@ -20,13 +19,14 @@ export class LogEntryEntity extends IndexedEntity<LogEvent> {
     userAgent: ""
   };
   static seedData = SEED_LOGS;
-  static keyOf(state: LogEvent): string {
-    return state.rayId || state.id;
+  // Use a wider parameter type to match IndexedEntity constraint and cast internally
+  static override keyOf<U extends { id: string }>(state: U): string {
+    const s = state as unknown as LogEvent;
+    return s.rayId || s.id;
   }
 }
 /**
  * MetricRollupEntity: Stores aggregated time-series metrics.
- * Uses the hour-aligned timestamp as the ID.
  */
 export class MetricRollupEntity extends IndexedEntity<MetricSummary & { id: string }> {
   static readonly entityName = "metric_rollup";
@@ -44,12 +44,13 @@ export class MetricRollupEntity extends IndexedEntity<MetricSummary & { id: stri
     const hourTs = new Date(log.timestamp).setMinutes(0, 0, 0);
     const id = String(hourTs);
     const entity = new MetricRollupEntity(env, id);
+    // Ensure latency is non-negative
+    const safeLatency = Math.max(0, log.latency);
     await entity.mutate(s => {
       const isError = log.status >= 400;
       const nextRequests = s.totalRequests + 1;
-      // Simple moving average approximation for p90 latency if we were doing full stats, 
-      // but here we'll just track a rolling average of "p90-like" values for the demo.
-      const nextLatency = Math.floor((s.p90Latency * s.totalRequests + log.latency) / nextRequests);
+      // Moving average for p90 estimation
+      const nextLatency = Math.floor((s.p90Latency * s.totalRequests + safeLatency) / nextRequests);
       return {
         ...s,
         id,
@@ -57,7 +58,7 @@ export class MetricRollupEntity extends IndexedEntity<MetricSummary & { id: stri
         totalRequests: nextRequests,
         errorCount: s.errorCount + (isError ? 1 : 0),
         p90Latency: nextLatency,
-        bandwidth: s.bandwidth + (Math.random() * 5000 + 1024), // Approx bandwidth
+        bandwidth: s.bandwidth + (Math.random() * 5000 + 1024),
       };
     });
   }
